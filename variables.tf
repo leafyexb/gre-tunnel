@@ -1,7 +1,7 @@
 variable "project_id" {
   type        = string
   description = "The GCP project ID to deploy resources into"
-  default     = "test-terraform-nsi"
+  default     = ""
 }
 
 variable "region" {
