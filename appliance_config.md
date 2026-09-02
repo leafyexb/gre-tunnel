@@ -50,32 +50,6 @@ commit
 
 VeloCloud Edges are managed centrally via the VeloCloud Orchestrator (VCO). 
 
-### A. Create a Non-VeloCloud Site (Generic GRE)
-1. Log in to the VeloCloud Orchestrator.
-2. Navigate to **Configure > Network Services** or **Configure > Profiles > Device > Non-VeloCloud Sites**.
-3. Click **New Non-VeloCloud Site**.
-4. Configure the parameters:
-   - **Name**: `PaloAlto-Hub`
-   - **Type**: `Generic GRE` (or Generic IPsec/GRE depending on VCO version)
-   - **Primary VPN Gateway (IP Address)**: `10.10.3.10` (Palo Alto Trust IP)
-5. Save the configuration.
-
-### B. Configure Interface and Tunnel IP
-In the site settings, configure the tunnel subnet matching the Palo Alto side:
-- **Local IP**: `172.16.1.1/30`
-- **Remote Peer IP**: `172.16.1.2/30`
-
-### C. Configure BGP Peering & Advertise Routes
-To exchange routes dynamically with Palo Alto:
-1. In the Non-VeloCloud Site configuration, enable the **BGP** checkbox.
-2. Set the following parameters:
-   - **Local AS**: `65002` (VeloCloud AS)
-   - **Neighbor IP**: `172.16.1.2` (Palo Alto Tunnel IP)
-   - **Neighbor AS**: `65001` (Palo Alto AS)
-3. Configure the profile to advertise local LAN prefixes (such as `10.10.4.0/24`) to the peer and learn the default route `0.0.0.0/0` advertised by Palo Alto.
-4. Save and apply the configuration.
-
----
 
 ## 3. Palo Alto VM-2 (PAN-OS) Configuration (Passive/Secondary)
 
