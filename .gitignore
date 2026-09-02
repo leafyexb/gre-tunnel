@@ -1,0 +1,39 @@
+# Terraform runtime & state
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+plan.txt
+
+# SSH Private Keys and Credentials (NEVER commit private keys)
+paloalto-key
+*.key
+*.pem
+*.id_rsa
+*.id_ed25519
+!*.pub
+
+# Debug and serial logs
+*.log
+debug_*.log
+
+# Temporary & test files
+temp_config.xml
+test_output.xml
+test_vm1.xml
+test.txt
+temp_cmd_*.txt
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Backup folders
+backups/

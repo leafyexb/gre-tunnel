@@ -1,0 +1,773 @@
+deviceconfig {
+  system {
+    type {
+      dhcp-client {
+        send-hostname yes;
+        send-client-id no;
+        accept-dhcp-hostname no;
+        accept-dhcp-domain no;
+      }
+    }
+    update-server updates.paloaltonetworks.com;
+    update-schedule {
+      threats {
+        recurring {
+          weekly {
+            day-of-week wednesday;
+            at 01:02;
+            action download-only;
+          }
+        }
+      }
+    }
+    timezone US/Pacific;
+    service {
+      disable-telnet yes;
+      disable-http yes;
+    }
+    hostname PA-VM;
+    device-telemetry {
+      device-health-performance yes;
+      product-usage yes;
+      threat-prevention yes;
+      region Americas;
+    }
+  }
+  setting {
+    config {
+      rematch yes;
+    }
+    management {
+      hostname-type-in-syslog FQDN;
+      initcfg {
+        type {
+          dhcp-client {
+            send-hostname yes;
+            send-client-id no;
+            accept-dhcp-hostname no;
+            accept-dhcp-domain no;
+          }
+        }
+        public-key c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCZ1FDbkJ5eXhtNzFKZ211Y2pGSTVGZ09vNlFiemk2Wk9vRFpnVjVwSmdiQ1pLQzl2T3g1TGU2bWt1QnRaSjBRWEVncmlXYTc3OFp4Mm1weUVTTkNXSU9yNVRzRmRySXErL3ZxR1l1d1hlZnNSUEhtT3NvSjFxbHl5VS85M1B4Q0xjY1BJWmlzNjZDSFl3YzRZNUorM0l6TFhkeHBIdGVoZTZsdUVMWFBieStTVjFuTHo5eDU3SVdBZHp2YWg4WkpOaUIzREI1TEJTMDhFbGVPb3F4T0VwSmVGMWRRVzhoWkdvQVQvRUVrQTB6Z0NkSzRiZjc5Q0E0Y1pzemg3eDBuVnNsckxpWE1CRzBSYWI5SzRCSHpHbUQrK1pZb3NqblZDQm9ucVhYZEFvdmMySFVSWGdOUGg0VmhqWmRQL2toRVlETW1CS09CTmZYRHBSNkZKeFBZL1JwN3gyTlh5WExnY2V2L1JtYTlqRDFxYTIzSXNsQnVrejg3YnJWaFZLVEhOSUI1c00xVWRsZnNtK21RbGpreWFRbURnS3c2RVpYUTNUeS9LNWpkTS9mdWlRbUJ4L1pqK2lyNHQyOUZIZ2srQi9iS0tSSzFiMkhqTW1vekprNUhZbnJDMFp1TmhuRU5RbFIyQ2tDa1pSZ3dkZ1JYTkt5Wjg4MzBjSWVRUkp4WS9WRzA9IGxlYWZ5ZUBsZWFmeWUuYy5nb29nbGVycy5jb20=;
+      }
+    }
+  }
+  high-availability {
+    interface {
+      ha1 {
+        port management;
+      }
+      ha2 {
+        port ethernet1/2;
+        ip-address 10.10.7.11;
+        netmask 255.255.255.0;
+      }
+    }
+    enabled yes;
+    group {
+      group-id 1;
+      peer-ip 10.10.1.15;
+      mode {
+        active-passive;
+      }
+      election-option {
+        device-priority 200;
+      }
+      configuration-synchronization {
+        enabled no;
+      }
+      state-synchronization {
+        enabled yes;
+        transport ip;
+      }
+      monitoring {
+        path-monitoring {
+          enabled no;
+        }
+      }
+    }
+  }
+}
+network {
+  interface {
+    ethernet {
+      ethernet1/1 {
+        layer3 {
+          interface-management-profile allow-hc;
+          ip {
+            10.10.3.11/24;
+          }
+          ndp-proxy {
+            enabled no;
+          }
+          sdwan-link-settings {
+            upstream-nat {
+              enable no;
+              static-ip;
+            }
+            enable no;
+          }
+          lldp {
+            enable no;
+          }
+        }
+        comment "GCP nic0 - Data VPC";
+      }
+      ethernet1/2 {
+        ha;
+      }
+    }
+    loopback {
+      units {
+        loopback.1 {
+          ip {
+            10.10.3.3/32;
+          }
+          comment "GCP ILB Health Check VIP";
+          interface-management-profile allow-hc;
+        }
+      }
+    }
+    tunnel {
+      units {
+        tunnel.1 {
+          ip {
+            169.254.28.2/29;
+          }
+          interface-management-profile allow-hc;
+        }
+        tunnel.2 {
+          ip {
+            169.254.29.2/29;
+          }
+          interface-management-profile allow-hc;
+        }
+      }
+    }
+  }
+  profiles {
+    monitor-profile {
+      default {
+        interval 3;
+        threshold 5;
+        action wait-recover;
+      }
+    }
+    interface-management-profile {
+      allow-hc {
+        ssh yes;
+        ping yes;
+      }
+    }
+  }
+  ike {
+    crypto-profiles {
+      ike-crypto-profiles {
+        default {
+          encryption [ aes-128-cbc 3des];
+          hash sha1;
+          dh-group group2;
+          lifetime {
+            hours 8;
+          }
+        }
+        Suite-B-GCM-128 {
+          encryption aes-128-cbc;
+          hash sha256;
+          dh-group group19;
+          lifetime {
+            hours 8;
+          }
+        }
+        Suite-B-GCM-256 {
+          encryption aes-256-cbc;
+          hash sha384;
+          dh-group group20;
+          lifetime {
+            hours 8;
+          }
+        }
+      }
+      ipsec-crypto-profiles {
+        default {
+          esp {
+            encryption [ aes-128-cbc 3des];
+            authentication sha1;
+          }
+          dh-group group2;
+          lifetime {
+            hours 1;
+          }
+        }
+        Suite-B-GCM-128 {
+          esp {
+            encryption aes-128-gcm;
+            authentication none;
+          }
+          dh-group group19;
+          lifetime {
+            hours 1;
+          }
+        }
+        Suite-B-GCM-256 {
+          esp {
+            encryption aes-256-gcm;
+            authentication none;
+          }
+          dh-group group20;
+          lifetime {
+            hours 1;
+          }
+        }
+      }
+      global-protect-app-crypto-profiles {
+        default {
+          encryption aes-128-cbc;
+          authentication sha1;
+        }
+      }
+    }
+  }
+  qos {
+    profile {
+      default {
+        class-bandwidth-type {
+          mbps {
+            class {
+              class1 {
+                priority real-time;
+              }
+              class2 {
+                priority high;
+              }
+              class3 {
+                priority high;
+              }
+              class4 {
+                priority medium;
+              }
+              class5 {
+                priority medium;
+              }
+              class6 {
+                priority low;
+              }
+              class7 {
+                priority low;
+              }
+              class8 {
+                priority low;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  virtual-router {
+    default {
+      protocol {
+        bgp {
+          enable yes;
+          dampening-profile {
+            default {
+              cutoff 1.25;
+              reuse 0.5;
+              max-hold-time 900;
+              decay-half-life-reachable 300;
+              decay-half-life-unreachable 900;
+              enable yes;
+            }
+          }
+          router-id 169.254.28.2;
+          local-as 65001;
+          install-route yes;
+          peer-group {
+            Group-to-VeloCloud-1 {
+              type {
+                ebgp {
+                  remove-private-as yes;
+                  import-nexthop original;
+                  export-nexthop resolve;
+                }
+              }
+              peer {
+                peer-velo1 {
+                  peer-address {
+                    ip 169.254.28.1;
+                  }
+                  connection-options {
+                    incoming-bgp-connection {
+                      remote-port 0;
+                      allow yes;
+                    }
+                    outgoing-bgp-connection {
+                      local-port 0;
+                      allow yes;
+                    }
+                    multihop 0;
+                    keep-alive-interval 30;
+                    open-delay-time 0;
+                    hold-time 90;
+                    idle-hold-time 15;
+                    min-route-adv-interval 30;
+                  }
+                  subsequent-address-family-identifier {
+                    unicast yes;
+                    multicast no;
+                  }
+                  local-address {
+                    interface tunnel.1;
+                  }
+                  bfd {
+                    profile Inherit-vr-global-setting;
+                  }
+                  max-prefixes 5000;
+                  enable yes;
+                  peer-as 65003;
+                  enable-mp-bgp no;
+                  address-family-identifier ipv4;
+                  enable-sender-side-loop-detection yes;
+                  reflector-client non-client;
+                  peering-type unspecified;
+                }
+              }
+              aggregated-confed-as-path yes;
+              soft-reset-with-stored-info no;
+              enable yes;
+            }
+            Group-to-VeloCloud-2 {
+              type {
+                ebgp {
+                  remove-private-as yes;
+                  import-nexthop original;
+                  export-nexthop resolve;
+                }
+              }
+              peer {
+                peer-velo-2 {
+                  peer-address {
+                    ip 169.254.29.1;
+                  }
+                  connection-options {
+                    incoming-bgp-connection {
+                      remote-port 0;
+                      allow yes;
+                    }
+                    outgoing-bgp-connection {
+                      local-port 0;
+                      allow yes;
+                    }
+                    multihop 0;
+                    keep-alive-interval 30;
+                    open-delay-time 0;
+                    hold-time 90;
+                    idle-hold-time 15;
+                    min-route-adv-interval 30;
+                  }
+                  subsequent-address-family-identifier {
+                    unicast yes;
+                    multicast no;
+                  }
+                  local-address {
+                    interface tunnel.2;
+                  }
+                  bfd {
+                    profile Inherit-vr-global-setting;
+                  }
+                  max-prefixes 5000;
+                  enable yes;
+                  peer-as 65002;
+                  enable-mp-bgp no;
+                  address-family-identifier ipv4;
+                  enable-sender-side-loop-detection yes;
+                  reflector-client non-client;
+                  peering-type unspecified;
+                }
+              }
+              aggregated-confed-as-path yes;
+              soft-reset-with-stored-info no;
+              enable yes;
+            }
+          }
+          policy {
+            export {
+              rules {
+                Export-Test-VPC {
+                  action {
+                    allow {
+                      update {
+                        as-path {
+                          none;
+                        }
+                        community {
+                          none;
+                        }
+                        extended-community {
+                          none;
+                        }
+                        med 200;
+                      }
+                    }
+                  }
+                  match {
+                    address-prefix {
+                      10.10.6.0/24 {
+                        exact yes;
+                      }
+                    }
+                    route-table unicast;
+                  }
+                  used-by Group-to-VeloCloud-1;
+                  enable yes;
+                }
+                Export-Velo-VM2 {
+                  action {
+                    allow {
+                      update {
+                        as-path {
+                          none;
+                        }
+                        community {
+                          none;
+                        }
+                        extended-community {
+                          none;
+                        }
+                        med 200;
+                      }
+                    }
+                  }
+                  match {
+                    address-prefix {
+                      10.10.6.0/24 {
+                        exact yes;
+                      }
+                    }
+                    route-table unicast;
+                  }
+                  used-by Group-to-VeloCloud-2;
+                  enable yes;
+                }
+              }
+            }
+            import {
+              rules {
+                "import from Velo" {
+                  action {
+                    allow {
+                      update {
+                        community {
+                          none;
+                        }
+                        extended-community {
+                          none;
+                        }
+                        med 100;
+                        as-path {
+                          none;
+                        }
+                      }
+                    }
+                  }
+                  match {
+                    route-table unicast;
+                  }
+                  used-by Group-to-VeloCloud-1;
+                  enable yes;
+                }
+                Import-Velo-2 {
+                  action {
+                    allow {
+                      update {
+                        community {
+                          none;
+                        }
+                        extended-community {
+                          none;
+                        }
+                        med 100;
+                        as-path {
+                          none;
+                        }
+                      }
+                    }
+                  }
+                  match {
+                    route-table unicast;
+                  }
+                  used-by Group-to-VeloCloud-2;
+                  enable yes;
+                }
+              }
+            }
+          }
+          routing-options {
+            graceful-restart {
+              enable no;
+            }
+          }
+          redist-rules {
+            redist-static {
+              address-family-identifier ipv4;
+              enable yes;
+              set-origin incomplete;
+            }
+          }
+        }
+        rip {
+          enable no;
+        }
+        ospf {
+          enable no;
+        }
+        ospfv3 {
+          enable no;
+        }
+        redist-profile {
+          redist-static {
+            filter {
+              type static;
+            }
+            priority 1;
+            action {
+              redist;
+            }
+          }
+        }
+      }
+      interface [ ethernet1/1 loopback.1 tunnel.1 tunnel.2];
+      routing-table {
+        ip {
+          static-route {
+            Route-to-Test-VPC {
+              nexthop {
+                ip-address 10.10.3.1;
+              }
+              bfd {
+                profile None;
+              }
+              metric 10;
+              destination 10.10.6.0/24;
+            }
+            Route-to-Health-Check-1 {
+              nexthop {
+                ip-address 10.10.3.1;
+              }
+              bfd {
+                profile None;
+              }
+              metric 10;
+              destination 35.191.0.0/16;
+            }
+            Route-to-Health-Check-2 {
+              nexthop {
+                ip-address 10.10.3.1;
+              }
+              bfd {
+                profile None;
+              }
+              metric 10;
+              destination 130.211.0.0/22;
+            }
+            route-velo1 {
+              bfd {
+                profile None;
+              }
+              interface tunnel.1;
+              metric 10;
+              destination 169.254.30.1/32;
+              route-table {
+                unicast;
+              }
+            }
+            route-velo2 {
+              bfd {
+                profile None;
+              }
+              interface tunnel.2;
+              metric 10;
+              destination 169.254.31.1/32;
+              route-table {
+                unicast;
+              }
+            }
+            default-route {
+              nexthop {
+                ip-address 10.10.3.1;
+              }
+              bfd {
+                profile None;
+              }
+              interface ethernet1/1;
+              metric 10;
+              destination 0.0.0.0/0;
+              route-table {
+                unicast;
+              }
+            }
+          }
+        }
+      }
+      ecmp {
+        algorithm {
+          ip-modulo;
+        }
+      }
+    }
+  }
+  tunnel {
+    gre {
+      velo-1 {
+        local-address {
+          interface ethernet1/1;
+          ip 10.10.3.11/24;
+        }
+        peer-address {
+          ip 10.10.3.20;
+        }
+        tunnel-interface tunnel.1;
+        keep-alive {
+          enable no;
+        }
+      }
+      velo-2 {
+        local-address {
+          interface ethernet1/1;
+          ip 10.10.3.11/24;
+        }
+        peer-address {
+          ip 10.10.3.21;
+        }
+        tunnel-interface tunnel.2;
+        keep-alive {
+          enable no;
+        }
+      }
+    }
+  }
+}
+shared {
+  application;
+  application-group;
+  service;
+  service-group;
+  botnet {
+    configuration {
+      http {
+        dynamic-dns {
+          enabled yes;
+          threshold 5;
+        }
+        malware-sites {
+          enabled yes;
+          threshold 5;
+        }
+        recent-domains {
+          enabled yes;
+          threshold 5;
+        }
+        ip-domains {
+          enabled yes;
+          threshold 10;
+        }
+        executables-from-unknown-sites {
+          enabled yes;
+          threshold 5;
+        }
+      }
+      other-applications {
+        irc yes;
+      }
+      unknown-applications {
+        unknown-tcp {
+          destinations-per-hour 10;
+          sessions-per-hour 10;
+          session-length {
+            maximum-bytes 100;
+            minimum-bytes 50;
+          }
+        }
+        unknown-udp {
+          destinations-per-hour 10;
+          sessions-per-hour 10;
+          session-length {
+            maximum-bytes 100;
+            minimum-bytes 50;
+          }
+        }
+      }
+    }
+    report {
+      topn 100;
+      scheduled yes;
+    }
+  }
+}
+zone {
+  Trust {
+    network {
+      layer3 [ loopback.1 tunnel.1 tunnel.2 ethernet1/1];
+    }
+  }
+}
+service-group;
+service;
+schedule;
+rulebase {
+  security {
+    rules {
+      Allow-Test-Traffic {
+        from Trust;
+        to Trust;
+        source 10.10.6.0/24;
+        destination [ 10.10.2.0/24 10.10.5.0/24];
+        application any;
+        service any;
+        action allow;
+        log-end yes;
+      }
+      GCP-ILB-HealthCheck-Allow {
+        from Trust;
+        to Trust;
+        source [ 35.191.0.0/16 130.211.0.0/22];
+        destination [ 10.10.3.11/32 10.10.3.3/32];
+        application any;
+        service any;
+        action allow;
+      }
+    }
+  }
+}
+import {
+  network {
+    interface [ tunnel.1 tunnel.2 ethernet1/1];
+  }
+}
+application-group;
+application;
+mgt-config {
+  users {
+    admin {
+      phash $5$frfcseot$85oYn1P7l6sbE6kGMFnhhmY.EuUHzOCbeyq6BuhspM.;
+      permissions {
+        role-based {
+          superuser yes;
+        }
+      }
+      public-key c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCZ1FDbkJ5eXhtNzFKZ211Y2pGSTVGZ09vNlFiemk2Wk9vRFpnVjVwSmdiQ1pLQzl2T3g1TGU2bWt1QnRaSjBRWEVncmlXYTc3OFp4Mm1weUVTTkNXSU9yNVRzRmRySXErL3ZxR1l1d1hlZnNSUEhtT3NvSjFxbHl5VS85M1B4Q0xjY1BJWmlzNjZDSFl3YzRZNUorM0l6TFhkeHBIdGVoZTZsdUVMWFBieStTVjFuTHo5eDU3SVdBZHp2YWg4WkpOaUIzREI1TEJTMDhFbGVPb3F4T0VwSmVGMWRRVzhoWkdvQVQvRUVrQTB6Z0NkSzRiZjc5Q0E0Y1pzemg3eDBuVnNsckxpWE1CRzBSYWI5SzRCSHpHbUQrK1pZb3NqblZDQm9ucVhYZEFvdmMySFVSWGdOUGg0VmhqWmRQL2toRVlETW1CS09CTmZYRHBSNkZKeFBZL1JwN3gyTlh5WExnY2V2L1JtYTlqRDFxYTIzSXNsQnVrejg3YnJWaFZLVEhOSUI1c00xVWRsZnNtK21RbGpreWFRbURnS3c2RVpYUTNUeS9LNWpkTS9mdWlRbUJ4L1pqK2lyNHQyOUZIZ2srQi9iS0tSSzFiMkhqTW1vekprNUhZbnJDMFp1TmhuRU5RbFIyQ2tDa1pSZ3dkZ1JYTkt5Wjg4MzBjSWVRUkp4WS9WRzA9IGxlYWZ5ZUBsZWFmeWUuYy5nb29nbGVycy5jb20=;
+    }
+    __openconfig {
+      phash $5$ilhqajeh$uOaqAUwb9CMGGcU5TtxzMc.FDs0fRfvl29q8bSfHZVC;
+      permissions {
+        role-based {
+          deviceadmin localhost.localdomain;
+        }
+      }
+    }
+  }
+  password-complexity {
+    enabled yes;
+    minimum-length 8;
+  }
+}
