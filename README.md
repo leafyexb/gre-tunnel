@@ -80,11 +80,7 @@ This repository contains Terraform infrastructure code, appliance configurations
 │   ├── paloalto_clean_config.xml      # Base sanitized XML configuration template
 │   └── paloalto_restored_config*.xml  # Validated restored configuration snapshots
 │
-└── *.py                               # Automation & operational scripts
-    ├── configure_palo_2.py            # Automated PAN-OS provisioning script
-    ├── download_palo_configs.py       # Configuration extraction utility via SSH
-    ├── run_palo_backup.py             # Periodic configuration backup utility
-    └── backup_script.py               # Firewall snapshot backup script
+
 ```
 
 ---
